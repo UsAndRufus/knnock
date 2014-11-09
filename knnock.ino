@@ -24,57 +24,88 @@ int lengths[3] = {2,3,5};
 // set up constants
 const int ledPin = 12;      // led connected to digital pin 12
 const int knockSensor = A1; // the piezo is connected to analog pin 0
-const int threshold = 10;   // threshold value to decide when the detected sound is a knock or not
+const int threshold = 7;   // threshold value to decide when the detected sound is a knock or not
 
 // set up variables
 int sensorReading = 0;      // variable to store the value read from the sensor pin
 int ledState = LOW;         // variable used to store the last LED status, to toggle the light
 
-int timeout = 500;          // what is the timeout
+int timeout = 1000;         // what is the timeout
 int delayTime = 10;         // How long do we wait for the wave to propogate?
 
 int patternLength = 10;     // How long should patterms be?
 
-void record(int* pattern[])
+void record(int pattern[])
 {
+  Serial.println("Starting record");
   int numKnocks = 0;
+  
+  //wait until first knock to give user time to think
+  while (numKnocks < 1)
+  {
+    sensorReading = analogRead(knockSensor);
+    if (sensorReading >= threshold) {
+      // register knock
+      numKnocks += 1;
+    }
+  }
+  
+  delay(delayTime); // wait for wave propagation
+  
+  Serial.println("First knock");
   unsigned long lastKnock = millis();
-  unsigned long timeSinceLastKnock = millis();
-  while (timeSinceLastKnock > timeout)
+  unsigned long timeSinceLastKnock = 0;
+  
+  //register remaining knocks, numKnocks = 1
+  while (timeSinceLastKnock < timeout)
   {
     sensorReading = analogRead(knockSensor);
     if (sensorReading >= threshold) {
       // register knock and add time slice to array
       numKnocks += 1;
-      
-      pattern[numKnocks] = (int)timeSinceLastKnock;
+      pattern[numKnocks - 1] = (int)timeSinceLastKnock; //add time between knocks to array
+                                                        //time between 4 and 3 is pattern[3]
       
       // send the string "Knock!" back to the computer, followed by newline
       Serial.print("Knock! ");
       Serial.println(sensorReading);
-      
       // wait a bit until the sound wave stops propogating and reset timeout
       delay(delayTime);
       lastKnock = millis(); // reset timeout 
     } //if
     
+    //Break loop if length limit reached
+    if (numKnocks >= patternLength)
+      break;
+    
     timeSinceLastKnock = millis() - lastKnock;
   } //while
   
   pattern[0] = numKnocks;
-  // start at 1 after last entry, pad out time with 0s
-  for (int i = numKnocks + 1; i < patternLength; i++)
+  
+  
+  // start at 1 after last entry, pad out with 0s
+  for (int i = numKnocks; i < patternLength; i++)
     pattern[i] = 0;
+
+  Serial.println();
 }
 
 void learn()
 {
+  Serial.println("Record about to start, waiting");
+  delay(1000);
+  
   //select action channel
   int actionChannel = 12;
   
   //record
   int pattern[patternLength];
   record(pattern);
+  Serial.println("Record finished, printing");
+  //testing, print array
+  for (int n = 0; n < patternLength; n++)
+    Serial.println(pattern[n]);
   
   //calc # of knocks
   //calc gaps
@@ -97,6 +128,11 @@ void setup() {
 }
 
 void loop() {
+  
+  learn();
+  Serial.println("Learn finished");
+  delay(1000);
+  
   /*
   
   // Check for timeout
