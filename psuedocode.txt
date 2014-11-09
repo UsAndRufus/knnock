@@ -1,0 +1,16 @@
+register learning
+  select action channel
+  record
+  calc # of knocks
+  calc gaps
+  store
+  
+classify
+  record
+  calc # of knocks
+  calc gaps
+  nearest neighbour with saved results
+  take action
+  
+save as array with number of knocks and gaps
+  
