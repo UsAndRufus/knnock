@@ -1,0 +1,38 @@
+register learning
+  
+  select action channel
+  
+  record
+  
+  calc # of knocks
+  
+  calc gaps
+  
+  store
+  
+
+
+classify
+  
+  record
+  
+  calc # of knocks
+  
+  calc gaps
+  
+  nearest neighbour with saved results
+  
+  take action
+  
+
+
+save as array with number of knocks and gaps
+  
+
+n_knocks, timesincelastknock_1, timesincelastknock_2, ...
+
+pad out list with 0s, ie. if 4 knocks, list will be
+
+4, time1, time2, time3, 0, 0, 0, 0, 0, 0
+
+with a pattern length of 10

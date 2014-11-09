@@ -1,4 +1,4 @@
-/* Knock Sensor
+/* knnock
   
    The circuit:
 	* + connection of the piezo attached to analog in 0
@@ -24,35 +24,47 @@ int lengths[3] = {2,3,5};
 // set up constants
 const int ledPin = 12;      // led connected to digital pin 12
 const int knockSensor = A1; // the piezo is connected to analog pin 0
-const int threshold = 10;  // threshold value to decide when the detected sound is a knock or not
+const int threshold = 10;   // threshold value to decide when the detected sound is a knock or not
 
 // set up variables
 int sensorReading = 0;      // variable to store the value read from the sensor pin
 int ledState = LOW;         // variable used to store the last LED status, to toggle the light
-int numKnocks = 0;          // how many knocks so far?
-unsigned long lastKnock = 0;        // when was the last timeout?
+
 int timeout = 500;          // what is the timeout
 int delayTime = 10;         // How long do we wait for the wave to propogate?
 
-void record()
+int patternLength = 10;     // How long should patterms be?
+
+void record(int* pattern[])
 {
-  unsigned long lastKnock = 0;
-  while ((millis() - lastKnock) > timeout)
+  int numKnocks = 0;
+  unsigned long lastKnock = millis();
+  unsigned long timeSinceLastKnock = millis();
+  while (timeSinceLastKnock > timeout)
   {
     sensorReading = analogRead(knockSensor);
     if (sensorReading >= threshold) {
+      // register knock and add time slice to array
+      numKnocks += 1;
+      
+      pattern[numKnocks] = (int)timeSinceLastKnock;
+      
       // send the string "Knock!" back to the computer, followed by newline
       Serial.print("Knock! ");
       Serial.println(sensorReading);
       
-      // register knock and 
-      numKnocks += 1;
-      
       // wait a bit until the sound wave stops propogating and reset timeout
       delay(delayTime);
       lastKnock = millis(); // reset timeout 
-    } 
-  }
+    } //if
+    
+    timeSinceLastKnock = millis() - lastKnock;
+  } //while
+  
+  pattern[0] = numKnocks;
+  // start at 1 after last entry, pad out time with 0s
+  for (int i = numKnocks + 1; i < patternLength; i++)
+    pattern[i] = 0;
 }
 
 void learn()
@@ -61,7 +73,8 @@ void learn()
   int actionChannel = 12;
   
   //record
-  record();
+  int pattern[patternLength];
+  record(pattern);
   
   //calc # of knocks
   //calc gaps
@@ -84,6 +97,7 @@ void setup() {
 }
 
 void loop() {
+  /*
   
   // Check for timeout
   if ((millis() - lastKnock) > timeout) {
@@ -113,7 +127,7 @@ void loop() {
     Serial.print(millis());
     Serial.print(" ");
     Serial.println(lastKnock);
-    */
+    
     
     // reset timeout
     lastKnock = millis();
@@ -132,5 +146,6 @@ void loop() {
     delay(10); 
   } 
   
+  */
   
 }
