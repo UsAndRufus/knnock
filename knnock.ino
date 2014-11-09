@@ -24,7 +24,7 @@ int lengths[3] = {2,3,5};
 // set up constants
 const int ledPin = 12;      // led connected to digital pin 12
 const int knockSensor = A1; // the piezo is connected to analog pin 0
-const int threshold = 7;   // threshold value to decide when the detected sound is a knock or not
+const int threshold = 7;    // threshold value to decide when the detected sound is a knock or not
 
 // set up variables
 int sensorReading = 0;      // variable to store the value read from the sensor pin
@@ -33,7 +33,9 @@ int ledState = LOW;         // variable used to store the last LED status, to to
 int timeout = 1000;         // what is the timeout
 int delayTime = 10;         // How long do we wait for the wave to propogate?
 
-int patternLength = 10;     // How long should patterms be?
+const int patternLength = 10;          // How long should patterns be?
+int patternsTable[1000][patternLength];    // 2D array to hold the patterns in
+int numRows = 0;            // Number of rows in the patterns table
 
 void record(int pattern[])
 {
@@ -96,20 +98,34 @@ void learn()
   Serial.println("Record about to start, waiting");
   delay(1000);
   
-  //select action channel
+  //Select action channel
   int actionChannel = 12;
   
-  //record
+  //Record
   int pattern[patternLength];
   record(pattern);
+  numRows++;
   Serial.println("Record finished, printing");
+  
   //testing, print array
   for (int n = 0; n < patternLength; n++)
     Serial.println(pattern[n]);
   
-  //calc # of knocks
-  //calc gaps
-  //store 
+  //Store
+  for (int n = 0; n < patternLength; n++)
+  {
+    patternsTable[numRows-1][n] = pattern[n];
+  }
+  
+  //testing, print table
+  for (int r = 0; r < numRows; r++)
+  {
+    for (int n = 0; n < patternLength; n++)
+      Serial.print(patternsTable[r][n]);
+    Serial.println();
+  }
+  
+  
   
 }
 
@@ -129,6 +145,7 @@ void setup() {
 
 void loop() {
   
+  Serial.println("Learn starting");
   learn();
   Serial.println("Learn finished");
   delay(1000);
